@@ -157,6 +157,7 @@ let images = [];
 let currentIndex = 0;
 let selectedProductId = null;
 let currentStock = 0;
+let currentMinOrder = 1;
 let selectedVariantId = null;
 let selectedColorId = null;
 
@@ -184,10 +185,12 @@ function openModal(el) {
     
     // Stock
     currentStock = parseInt(el.dataset.stock);
+    currentMinOrder = Math.max(parseInt(el.dataset.min) || 1, 1);
     document.getElementById('modalStock').innerText = currentStock + " pcs";
     const qtyInput = document.getElementById('qty');
-    qtyInput.value = 1;
+    qtyInput.min = currentMinOrder;
     qtyInput.max = currentStock;
+    qtyInput.value = Math.min(currentMinOrder, currentStock);
     
     if(currentStock <= 0) {
         document.getElementById('modalStock').classList.add('text-red-500');
@@ -201,6 +204,8 @@ function openModal(el) {
         document.getElementById('modalStock').classList.add('text-gray-900');
         document.getElementById('qty').disabled = false;
     }
+
+    validateQty();
 
     // Images
     images = JSON.parse(el.dataset.images);
@@ -266,32 +271,70 @@ function closeModal(){
 
 function increaseQty(){
     let q = document.getElementById('qty');
-    let val = parseInt(q.value);
+    let val = parseInt(q.value) || 0;
     if(val < currentStock) {
         q.value = val + 1;
     }
+    validateQty();
 }
 
 function decreaseQty(){
     let q = document.getElementById('qty');
-    let val = parseInt(q.value);
-    if(val > 1) {
+    let val = parseInt(q.value) || currentMinOrder;
+    if(val > currentMinOrder) {
         q.value = val - 1;
     }
+    validateQty();
 }
 
-// Add event listener for manual input
-document.getElementById('qty').addEventListener('input', function() {
-    let val = parseInt(this.value);
-    if(val > currentStock) {
-        this.value = currentStock;
-    } else if(val < 1) {
-        if(currentStock > 0) {
-            this.value = 1;
-        } else {
-            this.value = 0;
-        }
+function validateQty() {
+    const qtyInput = document.getElementById('qty');
+    const qtyWarning = document.getElementById('qtyWarning');
+    let val = parseInt(qtyInput.value);
+
+    if (Number.isNaN(val)) {
+        val = currentStock > 0 ? currentMinOrder : 0;
+        qtyInput.value = val;
     }
+
+    if (currentStock <= 0) {
+        qtyInput.value = 0;
+        qtyWarning.classList.add('hidden');
+        checkEnableButton();
+        return true;
+    }
+
+    if (val > currentStock) {
+        val = currentStock;
+        qtyInput.value = val;
+    }
+
+    if (val < 1) {
+        val = currentMinOrder;
+        qtyInput.value = val;
+    }
+
+    if (val < currentMinOrder) {
+        qtyWarning.textContent = `Minimal pemesanan ${currentMinOrder} pcs untuk produk ini.`;
+        qtyWarning.classList.remove('hidden');
+        checkEnableButton();
+        return false;
+    }
+
+    if (currentStock < currentMinOrder) {
+        qtyWarning.textContent = `Produk ini minimal ${currentMinOrder} pcs, tetapi stok tersedia hanya ${currentStock} pcs.`;
+        qtyWarning.classList.remove('hidden');
+        checkEnableButton();
+        return false;
+    }
+
+    qtyWarning.classList.add('hidden');
+    checkEnableButton();
+    return true;
+}
+
+document.getElementById('qty').addEventListener('input', function() {
+    validateQty();
 });
 
 function selectVariant(el){
@@ -323,8 +366,9 @@ function selectColor(el){
 function checkEnableButton(){
     let btnAdd = document.getElementById('btnAddToCart');
     let btnBuy = document.getElementById('btnBuyNow');
+    let isQtyValid = validateQtyWithoutLoop();
     
-    if (selectedVariantId && selectedColorId) {
+    if (selectedVariantId && selectedColorId && isQtyValid) {
         btnAdd.disabled = false;
         btnAdd.classList.remove('opacity-50','cursor-not-allowed');
         
@@ -339,6 +383,17 @@ function checkEnableButton(){
     }
 }
 
+function validateQtyWithoutLoop() {
+    const qtyInput = document.getElementById('qty');
+    const val = parseInt(qtyInput.value);
+
+    return currentStock > 0 &&
+        !Number.isNaN(val) &&
+        val >= currentMinOrder &&
+        val <= currentStock &&
+        currentStock >= currentMinOrder;
+}
+
 function addToCart() {
     let qty = document.getElementById('qty').value;
 
@@ -349,6 +404,10 @@ function addToCart() {
 
     if (!selectedColorId) {
         document.getElementById('colorWarning').classList.remove('hidden');
+        return;
+    }
+
+    if (!validateQty()) {
         return;
     }
 
@@ -365,7 +424,14 @@ function addToCart() {
             qty: qty
         })
     })
-    .then(res => res.json())
+    .then(async res => {
+        const data = await res.json();
+        if (!res.ok) {
+            throw new Error(data.message || 'Gagal menambahkan produk ke keranjang');
+        }
+
+        return data;
+    })
     .then(data => {
         if(data.success) {
             closeModal();
@@ -383,6 +449,14 @@ function addToCart() {
                 window.location.reload();
             });
         }
+    })
+    .catch(error => {
+        Swal.fire({
+            title: 'Oops!',
+            text: error.message,
+            icon: 'error',
+            confirmButtonColor: '#ec4899'
+        });
     });
 }
 
@@ -399,6 +473,10 @@ function buyNow() {
         return;
     }
 
+    if (!validateQty()) {
+        return;
+    }
+
     fetch("/cart/buy-now", {
         method: "POST",
         headers: {
@@ -412,11 +490,26 @@ function buyNow() {
             qty: qty
         })
     })
-    .then(res => res.json())
+    .then(async res => {
+        const data = await res.json();
+        if (!res.ok) {
+            throw new Error(data.message || 'Gagal memproses pembelian');
+        }
+
+        return data;
+    })
     .then(data => {
         if(data.success && data.redirect) {
             window.location.href = data.redirect;
         }
+    })
+    .catch(error => {
+        Swal.fire({
+            title: 'Oops!',
+            text: error.message,
+            icon: 'error',
+            confirmButtonColor: '#ec4899'
+        });
     });
 }
 </script>

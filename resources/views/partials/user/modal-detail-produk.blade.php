@@ -72,6 +72,7 @@
                                class="w-14 py-1 text-center border rounded" style="appearance: none; -webkit-appearance: none; -moz-appearance: textfield;">
                         <button onclick="increaseQty()" class="bg-white hover:bg-gray-100 px-3 py-1 border rounded cursor-pointer transition-all ease-in-out duration-200">+</button>
                     </div>
+                    <p id="qtyWarning" class="text-xs text-red-500 mt-2 hidden"></p>
                 </div>
 
                 <!-- DESC -->

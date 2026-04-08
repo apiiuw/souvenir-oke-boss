@@ -21,15 +21,22 @@ class CartController extends Controller
 
     public function add(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'product_id' => 'required|exists:products,id',
             'variant_id' => 'required|exists:product_variants,id',
             'color_id' => 'required|exists:product_colors,id',
             'qty' => 'required|integer|min:1'
         ]);
 
-        $product = Product::findOrFail($request->product_id);
-        if ($request->qty > $product->stock) {
+        $product = Product::findOrFail($validated['product_id']);
+        if ($validated['qty'] < $product->min_order) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Minimal pemesanan untuk produk ini adalah ' . $product->min_order . ' pcs.'
+            ], 422);
+        }
+
+        if ($validated['qty'] > $product->stock) {
             return response()->json([
                 'success' => false,
                 'message' => 'Stok tidak mencukupi. Sisa stok: ' . $product->stock
@@ -39,21 +46,28 @@ class CartController extends Controller
         $cart = $this->getCart();
 
         $item = CartItem::where('cart_id', $cart->id)
-            ->where('product_id', $request->product_id)
-            ->where('variant_id', $request->variant_id)
-            ->where('color_id', $request->color_id)
+            ->where('product_id', $validated['product_id'])
+            ->where('variant_id', $validated['variant_id'])
+            ->where('color_id', $validated['color_id'])
             ->first();
 
         if ($item) {
-            $item->qty += $request->qty;
+            if (($item->qty + $validated['qty']) > $product->stock) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Stok tidak mencukupi. Sisa stok: ' . $product->stock
+                ], 422);
+            }
+
+            $item->qty += $validated['qty'];
             $item->save();
         } else {
             CartItem::create([
                 'cart_id' => $cart->id,
-                'product_id' => $request->product_id,
-                'variant_id' => $request->variant_id,
-                'color_id' => $request->color_id,
-                'qty' => $request->qty
+                'product_id' => $validated['product_id'],
+                'variant_id' => $validated['variant_id'],
+                'color_id' => $validated['color_id'],
+                'qty' => $validated['qty']
             ]);
         }
 
@@ -65,15 +79,22 @@ class CartController extends Controller
 
     public function buyNow(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'product_id' => 'required|exists:products,id',
             'variant_id' => 'required|exists:product_variants,id',
             'color_id' => 'required|exists:product_colors,id',
             'qty' => 'required|integer|min:1'
         ]);
 
-        $product = Product::findOrFail($request->product_id);
-        if ($request->qty > $product->stock) {
+        $product = Product::findOrFail($validated['product_id']);
+        if ($validated['qty'] < $product->min_order) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Minimal pemesanan untuk produk ini adalah ' . $product->min_order . ' pcs.'
+            ], 422);
+        }
+
+        if ($validated['qty'] > $product->stock) {
             return response()->json([
                 'success' => false,
                 'message' => 'Stok tidak mencukupi. Sisa stok: ' . $product->stock
@@ -90,10 +111,10 @@ class CartController extends Controller
 
         CartItem::create([
             'cart_id' => $cart->id,
-            'product_id' => $request->product_id,
-            'variant_id' => $request->variant_id,
-            'color_id' => $request->color_id,
-            'qty' => $request->qty
+            'product_id' => $validated['product_id'],
+            'variant_id' => $validated['variant_id'],
+            'color_id' => $validated['color_id'],
+            'qty' => $validated['qty']
         ]);
 
         return response()->json([
@@ -120,16 +141,21 @@ class CartController extends Controller
     {
         $cart = $this->getCart();
         $item = CartItem::where('cart_id', $cart->id)->findOrFail($id);
+        $product = $item->product;
         
         if ($request->action == 'increase') {
+            if ($item->qty >= $product->stock) {
+                return back()->with('error', 'Stok produk ini sudah mencapai batas maksimum.');
+            }
+
             $item->qty += 1;
             $item->save();
         } elseif ($request->action == 'decrease') {
-            if ($item->qty > 1) {
+            if ($item->qty > $product->min_order) {
                 $item->qty -= 1;
                 $item->save();
             } else {
-                $item->delete();
+                return back()->with('error', 'Jumlah minimal untuk produk ini adalah ' . $product->min_order . ' pcs.');
             }
         }
         
