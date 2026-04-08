@@ -1,5 +1,5 @@
-<a href="{{ route('cart.index') }}"
-   class="fixed bottom-6 right-6 z-50 bg-pink-oke-boss text-white p-4 rounded-full shadow-lg hover:scale-105 transition">
+<a id="floatingCart" href="{{ route('cart.index') }}"
+   class="fixed bottom-6 right-6 z-50 bg-pink-oke-boss text-white p-4 rounded-full shadow-lg hover:scale-105 transition {{ $cartCount > 0 ? '' : 'hidden' }}">
 
     <!-- Icon -->
     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"

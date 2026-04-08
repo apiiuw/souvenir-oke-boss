@@ -19,3 +19,14 @@
     @apply bg-blue-500 text-white px-4 py-2 rounded-lg;
   }
 }
+
+/* Hide number input arrows */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type="number"] {
+    -moz-appearance: textfield;
+}

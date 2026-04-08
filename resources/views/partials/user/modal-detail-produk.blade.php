@@ -35,13 +35,29 @@
                     Minimal pembelian: <span id="modalMinOrder"></span>
                 </p>
 
+                <p id="stockContainer" class="text-sm text-gray-600">
+                    Sisa Stok: <span id="modalStock" class="font-bold text-gray-900"></span>
+                </p>
+
                 <!-- VARIANT -->
                 <div>
                     <p class="font-semibold mb-2">Pilih Variasi</p>
 
                     <!-- WARNING -->
                     <p id="variantWarning" class="text-xs text-red-500 hidden">
-                        Pilih varian terlebih dahulu
+                        Pilih variasi terlebih dahulu
+                    </p>
+
+                    <div id="modalVariants" class="flex flex-wrap gap-2"></div>
+                </div>
+
+                <!-- COLOR -->
+                <div>
+                    <p class="font-semibold mb-2">Pilih Warna</p>
+
+                    <!-- WARNING -->
+                    <p id="colorWarning" class="text-xs text-red-500 hidden">
+                        Pilih warna terlebih dahulu
                     </p>
 
                     <div id="modalColors" class="flex flex-wrap gap-2"></div>
@@ -51,10 +67,10 @@
                 <div>
                     <p class="font-semibold mb-2">Jumlah</p>
                     <div class="flex items-center gap-2">
-                        <button onclick="decreaseQty()" class="px-3 py-1 border rounded">-</button>
+                        <button onclick="decreaseQty()" class="bg-white hover:bg-gray-100 px-3 py-1 border rounded cursor-pointer transition-all ease-in-out duration-200">-</button>
                         <input id="qty" type="number" min="1" value="1"
-                               class="w-14 text-center border rounded">
-                        <button onclick="increaseQty()" class="px-3 py-1 border rounded">+</button>
+                               class="w-14 py-1 text-center border rounded" style="appearance: none; -webkit-appearance: none; -moz-appearance: textfield;">
+                        <button onclick="increaseQty()" class="bg-white hover:bg-gray-100 px-3 py-1 border rounded cursor-pointer transition-all ease-in-out duration-200">+</button>
                     </div>
                 </div>
 
@@ -70,11 +86,14 @@
                     <button id="btnAddToCart"
                             onclick="addToCart()"
                             disabled
-                            class="flex-1 border border-pink-oke-boss text-pink-oke-boss py-2 rounded-lg cursor-not-allowed opacity-50">
+                            class="flex-1 border border-pink-oke-boss bg-white hover:bg-gray-100 text-pink-oke-boss py-2 rounded-lg cursor-not-allowed opacity-50 transition-all ease-in-out duration-200">
                         + Keranjang
                     </button>
 
-                    <button class="flex-1 bg-pink-oke-boss text-white py-2 rounded-lg">
+                    <button id="btnBuyNow"
+                            onclick="buyNow()"
+                            disabled
+                            class="flex-1 bg-pink-oke-boss hover:bg-pink-oke-boss/80 text-white py-2 rounded-lg cursor-not-allowed opacity-50 transition-all ease-in-out duration-200">
                         Beli Sekarang
                     </button>
 

@@ -3,16 +3,16 @@
     </span>
     <ul class="flex flex-wrap items-center mt-3 text-sm font-medium text-body sm:mt-0">
         <li>
-            <a href="#" class="hover:underline me-4 md:me-6">Beranda</a>
+            <a href="{{ route('beranda') }}" class="hover:underline me-4 md:me-6">Beranda</a>
         </li>
         <li>
-            <a href="#" class="hover:underline me-4 md:me-6">Produk</a>
+            <a href="{{ route('produk') }}" class="hover:underline me-4 md:me-6">Produk</a>
         </li>
         <li>
-            <a href="#" class="hover:underline me-4 md:me-6">Tentang Kami</a>
+            <a href="{{ route('tentang-kami') }}" class="hover:underline me-4 md:me-6">Tentang Kami</a>
         </li>
         <li>
-            <a href="#" class="hover:underline">Kontak</a>
+            <a href="https://wa.me/6285780007175?text=Halo%20Admin%20Souvenir%20Oke%20Boss%2C%20saya%20ingin%20bertanya%20seputar%20produk." target="_blank" class="hover:underline">Kontak (WhatsApp)</a>
         </li>
     </ul>
 </footer>

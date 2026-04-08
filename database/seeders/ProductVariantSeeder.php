@@ -10,23 +10,31 @@ class ProductVariantSeeder extends Seeder
 {
     public function run(): void
     {
-        $colors = [
-            ['name' => 'Merah', 'image' => 'colors/red.jpg'],
-            ['name' => 'Biru', 'image' => 'colors/blue.jpg'],
-            ['name' => 'Hijau', 'image' => 'colors/green.jpg'],
-            ['name' => 'Hitam', 'image' => 'colors/black.jpg'],
+        $variants = [
+            'Mickey Mouse',
+            'SpongeBob',
+            'Batman',
+            'Hello Kitty',
+            'Doraemon',
         ];
 
         $products = Product::all();
 
-        foreach ($products as $product) {
-            $selectedColors = collect($colors)->random(rand(2, 4));
+        $variantImages = [
+            'Mickey Mouse' => 'variants/mickey.png',
+            'SpongeBob' => 'variants/spongebob.png',
+            'Batman' => 'variants/batman.png',
+            'Hello Kitty' => 'variants/hellokitty.png',
+            'Doraemon' => 'variants/doraemon.png',
+        ];
 
-            foreach ($selectedColors as $color) {
+        foreach ($products as $product) {
+            $selectedVariants = collect($variants)->random(rand(1, 3));
+            foreach ($selectedVariants as $variantName) {
                 ProductVariant::create([
                     'product_id' => $product->id,
-                    'name' => $color['name'],
-                    'image' => $color['image'],
+                    'name' => $variantName,
+                    'image' => $variantImages[$variantName] ?? 'variants/default.png',
                 ]);
             }
         }

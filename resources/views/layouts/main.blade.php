@@ -17,12 +17,14 @@
 
         <!-- Styles / Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @stack('styles')
     </head>
     <body class="bg-white text-[#1b1b18] min-h-screen">
-        @include('partials.navbar')
+        @include('partials.user.navbar')
         @yield('container')
-        @include('partials.footer')
+        @include('partials.user.footer')
 
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
         @stack('scripts')
         <script>
 

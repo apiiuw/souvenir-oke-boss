@@ -17,7 +17,8 @@ class ProdukController extends Controller
         $sort = $request->query('sort');
 
         // Query utama (🔥 eager loading biar cepat)
-        $query = Product::with(['category', 'images', 'variants']);
+        $query = Product::with(['category', 'images', 'variants', 'colors'])
+            ->orderByRaw('stock > 0 DESC');
 
         // 🔍 Filter kategori (pakai slug)
         if ($category) {
@@ -68,6 +69,7 @@ class ProdukController extends Controller
             ->first();
 
         $cartCount = $cart ? $cart->items->sum('qty') : 0;
+
 
         return view('roles.users.produk.index', [
             'title' => $title,
