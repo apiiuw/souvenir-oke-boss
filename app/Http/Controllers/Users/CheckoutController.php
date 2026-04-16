@@ -36,7 +36,8 @@ class CheckoutController extends Controller
 
         return view('roles.users.checkout.index', [
             'cart' => $cart,
-            'title' => 'Checkout'
+            'title' => 'Checkout',
+            'user' => auth()->user(),
         ]);
     }
 
@@ -102,8 +103,30 @@ class CheckoutController extends Controller
 
         $message = $this->buildWhatsappMessage($orderCode, $validated, $cart, $totals['qty'], $totals['price'], $normalizedPhone);
 
-        $order = DB::transaction(function () use ($cart, $validated, $totals, $message, $orderCode, $whatsappNumber) {
+        $order = DB::transaction(function () use ($cart, $validated, $totals, $message, $orderCode, $whatsappNumber, $normalizedPhone) {
+            if (auth()->check()) {
+                auth()->user()->update([
+                    'name' => $validated['customer_name'],
+                    'phone' => $normalizedPhone ?: $validated['phone'],
+                    'address_line' => $validated['address_line'],
+                    'province_id' => $validated['province_id'] ?: null,
+                    'province_name' => $validated['province_name'],
+                    'city_id' => $validated['city_id'] ?: null,
+                    'city_name' => $validated['city_name'],
+                    'district_id' => $validated['district_id'] ?: null,
+                    'district_name' => $validated['district_name'],
+                    'subdistrict_id' => $validated['subdistrict_id'] ?: null,
+                    'subdistrict_name' => $validated['subdistrict_name'],
+                    'rt' => $validated['rt'],
+                    'rw' => $validated['rw'],
+                    'maps_link' => $validated['maps_link'] ?: null,
+                    'maps_latitude' => $validated['maps_latitude'] ?: null,
+                    'maps_longitude' => $validated['maps_longitude'] ?: null,
+                ]);
+            }
+
             $order = Order::create([
+                'user_id' => auth()->id(),
                 'order_code' => $orderCode,
                 'session_id' => $cart->session_id,
                 'customer_name' => $validated['customer_name'],
@@ -150,9 +173,22 @@ class CheckoutController extends Controller
             return $order;
         });
 
-        return redirect()->away(
-            'https://wa.me/' . $order->whatsapp_number . '?text=' . rawurlencode($order->whatsapp_message)
-        );
+
+
+        $whatsappUrl = "https://wa.me/{$whatsappNumber}?text=" . urlencode($message);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'whatsapp_url' => $whatsappUrl,
+                'redirect_url' => route('user.orders.show', $order)
+            ]);
+        }
+
+        return redirect()
+            ->route('user.orders.show', $order)
+            ->with('success', 'Pesanan berhasil dibuat. Status pengiriman bisa dipantau dari halaman ini.')
+            ->with('whatsapp_url', $whatsappUrl);
     }
 
     private function buildWhatsappMessage(string $orderCode, array $validated, Cart $cart, int $totalQty, int $totalPrice, string $normalizedPhone): string

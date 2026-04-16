@@ -10,11 +10,17 @@ class OrderController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Order::query();
+        $query = Order::with('user');
 
         if ($request->filled('search')) {
-            $query->where('order_code', 'like', '%' . $request->search . '%')
-                  ->orWhere('customer_name', 'like', '%' . $request->search . '%');
+            $search = $request->search;
+
+            $query->where(function ($orderQuery) use ($search) {
+                $orderQuery->where('order_code', 'like', '%' . $search . '%')
+                    ->orWhere('customer_name', 'like', '%' . $search . '%')
+                    ->orWhere('recipient_name', 'like', '%' . $search . '%')
+                    ->orWhere('phone', 'like', '%' . $search . '%');
+            });
         }
 
         if ($request->filled('status')) {
@@ -31,7 +37,7 @@ class OrderController extends Controller
 
     public function show($id)
     {
-        $order = Order::with('items')->findOrFail($id);
+        $order = Order::with(['items', 'user'])->findOrFail($id);
 
         return view('roles.admins.orders.show', [
             'title' => 'Detail Pesanan #' . $order->order_code,

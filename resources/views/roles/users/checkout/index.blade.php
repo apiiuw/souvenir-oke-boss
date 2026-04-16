@@ -4,6 +4,7 @@
 @php
     $totalQty = 0;
     $totalPrice = 0;
+    $profileAddressReady = $user && $user->address_line && $user->province_name && $user->city_name && $user->district_name && $user->subdistrict_name && $user->rt && $user->rw;
 @endphp
 
 <div class="max-w-6xl min-h-screen mx-auto py-10 px-6 md:px-10">
@@ -38,7 +39,7 @@
 
     @if($cart->items->count() > 0)
         <div class="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-            <form id="checkout-form" action="{{ route('checkout.store') }}" method="POST" class="space-y-6" target="_blank" onsubmit="setTimeout(() => window.location.href = '{{ route('produk') }}', 1000)">
+            <form id="checkout-form" action="{{ route('checkout.store') }}" method="POST" class="space-y-6">
                 @csrf
                 @if(request()->query('type') === 'buynow' || request()->input('checkout_type') === 'buynow')
                     <input type="hidden" name="checkout_type" value="buynow">
@@ -50,14 +51,23 @@
                             <h2 class="text-lg font-bold">Data Penerima</h2>
                             <p class="text-sm text-gray-500">Pastikan nama dan nomor telepon mudah dihubungi.</p>
                         </div>
+                        <a href="{{ route('user.profile.edit') }}" class="inline-flex items-center rounded-2xl border border-pink-200 px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-pink-600 transition hover:bg-pink-50">
+                            Edit Profil
+                        </a>
                     </div>
+
+                    @if($profileAddressReady)
+                        <div class="mb-5 rounded-2xl border border-pink-100 bg-[#fff7fb] px-4 py-3 text-sm text-gray-600">
+                            Data profil pengiriman Anda sudah tersimpan dan otomatis terisi di form ini. Silakan sesuaikan jika ada perubahan untuk pesanan kali ini.
+                        </div>
+                    @endif
 
                     <div class="grid gap-4 md:grid-cols-2">
                         <div>
                             <div class="flex items-center h-6 mb-2">
                                 <label for="customer_name" class="block text-sm font-semibold text-gray-700">Nama Lengkap</label>
                             </div>
-                            <input id="customer_name" name="customer_name" type="text" value="{{ old('customer_name') }}" class="w-full rounded-2xl border border-gray-200 px-4 py-3 focus:border-pink-oke-boss focus:outline-none" placeholder="Masukkan nama lengkap" required>
+                            <input id="customer_name" name="customer_name" type="text" value="{{ old('customer_name', $user?->name) }}" class="w-full rounded-2xl border border-gray-200 px-4 py-3 focus:border-pink-oke-boss focus:outline-none" placeholder="Masukkan nama lengkap" required>
                         </div>
                         <div>
                             <div class="flex items-center justify-between gap-3 h-6 mb-2">
@@ -67,11 +77,11 @@
                                     Samakan dengan nama lengkap
                                 </label>
                             </div>
-                            <input id="recipient_name" name="recipient_name" type="text" value="{{ old('recipient_name') }}" class="w-full rounded-2xl border border-gray-200 px-4 py-3 focus:border-pink-oke-boss focus:outline-none" placeholder="Masukkan nama penerima" required>
+                            <input id="recipient_name" name="recipient_name" type="text" value="{{ old('recipient_name', $user?->name) }}" class="w-full rounded-2xl border border-gray-200 px-4 py-3 focus:border-pink-oke-boss focus:outline-none" placeholder="Masukkan nama penerima" required>
                         </div>
                         <div class="md:col-span-2">
                             <label for="phone" class="block text-sm font-semibold text-gray-700 mb-2">Nomor Telepon</label>
-                            <input id="phone" name="phone" type="text" inputmode="tel" value="{{ old('phone') }}" class="w-full rounded-2xl border border-gray-200 px-4 py-3 focus:border-pink-oke-boss focus:outline-none" placeholder="Contoh: 081234567890" required>
+                            <input id="phone" name="phone" type="text" inputmode="tel" value="{{ old('phone', $user?->phone) }}" class="w-full rounded-2xl border border-gray-200 px-4 py-3 focus:border-pink-oke-boss focus:outline-none" placeholder="Contoh: 081234567890" required>
                         </div>
                     </div>
                 </div>
@@ -85,45 +95,45 @@
                     <div class="space-y-4">
                         <div>
                             <label for="address_line" class="block text-sm font-semibold text-gray-700 mb-2">Alamat Lengkap</label>
-                            <textarea id="address_line" name="address_line" rows="4" class="w-full rounded-2xl border border-gray-200 px-4 py-3 focus:border-pink-oke-boss focus:outline-none" placeholder="Nama jalan, nomor rumah, patokan, dan detail alamat lainnya" required>{{ old('address_line') }}</textarea>
+                            <textarea id="address_line" name="address_line" rows="4" class="w-full rounded-2xl border border-gray-200 px-4 py-3 focus:border-pink-oke-boss focus:outline-none" placeholder="Nama jalan, nomor rumah, patokan, dan detail alamat lainnya" required>{{ old('address_line', $user?->address_line) }}</textarea>
                         </div>
 
                         <div class="grid gap-4 md:grid-cols-2">
                             <div>
                                 <label for="province_id" class="block text-sm font-semibold text-gray-700 mb-2">Provinsi</label>
                                 <select id="province_id" name="province_id" class="w-full rounded-2xl border border-gray-200 px-4 py-3 focus:border-pink-oke-boss focus:outline-none" required></select>
-                                <input type="hidden" id="province_name" name="province_name" value="{{ old('province_name') }}">
+                                <input type="hidden" id="province_name" name="province_name" value="{{ old('province_name', $user?->province_name) }}">
                             </div>
                             <div>
                                 <label for="city_id" class="block text-sm font-semibold text-gray-700 mb-2">Kabupaten / Kota</label>
                                 <select id="city_id" name="city_id" class="w-full rounded-2xl border border-gray-200 px-4 py-3 focus:border-pink-oke-boss focus:outline-none" required disabled></select>
-                                <input type="hidden" id="city_name" name="city_name" value="{{ old('city_name') }}">
+                                <input type="hidden" id="city_name" name="city_name" value="{{ old('city_name', $user?->city_name) }}">
                             </div>
                         </div>
 
                         <div class="grid gap-4 md:grid-cols-2">
                             <div>
                                 <label for="district_name" class="block text-sm font-semibold text-gray-700 mb-2">Kecamatan</label>
-                                <input id="district_name" name="district_name" type="text" list="district-suggestions" value="{{ old('district_name') }}" class="w-full rounded-2xl border border-gray-200 px-4 py-3 focus:border-pink-oke-boss focus:outline-none" placeholder="Pilih kabupaten/kota terlebih dahulu" autocomplete="off" required>
+                                <input id="district_name" name="district_name" type="text" list="district-suggestions" value="{{ old('district_name', $user?->district_name) }}" class="w-full rounded-2xl border border-gray-200 px-4 py-3 focus:border-pink-oke-boss focus:outline-none" placeholder="Pilih kabupaten/kota terlebih dahulu" autocomplete="off" required>
                                 <datalist id="district-suggestions"></datalist>
-                                <input type="hidden" id="district_id" name="district_id" value="{{ old('district_id') }}">
+                                <input type="hidden" id="district_id" name="district_id" value="{{ old('district_id', $user?->district_id) }}">
                             </div>
                             <div>
                                 <label for="subdistrict_name" class="block text-sm font-semibold text-gray-700 mb-2">Kelurahan / Desa</label>
-                                <input id="subdistrict_name" name="subdistrict_name" type="text" list="subdistrict-suggestions" value="{{ old('subdistrict_name') }}" class="w-full rounded-2xl border border-gray-200 px-4 py-3 focus:border-pink-oke-boss focus:outline-none" placeholder="Pilih kecamatan terlebih dahulu" autocomplete="off" required>
+                                <input id="subdistrict_name" name="subdistrict_name" type="text" list="subdistrict-suggestions" value="{{ old('subdistrict_name', $user?->subdistrict_name) }}" class="w-full rounded-2xl border border-gray-200 px-4 py-3 focus:border-pink-oke-boss focus:outline-none" placeholder="Pilih kecamatan terlebih dahulu" autocomplete="off" required>
                                 <datalist id="subdistrict-suggestions"></datalist>
-                                <input type="hidden" id="subdistrict_id" name="subdistrict_id" value="{{ old('subdistrict_id') }}">
+                                <input type="hidden" id="subdistrict_id" name="subdistrict_id" value="{{ old('subdistrict_id', $user?->subdistrict_id) }}">
                             </div>
                         </div>
 
                         <div class="grid gap-4 md:grid-cols-2">
                             <div>
                                 <label for="rt" class="block text-sm font-semibold text-gray-700 mb-2">RT</label>
-                                <input id="rt" name="rt" type="text" value="{{ old('rt') }}" class="w-full rounded-2xl border border-gray-200 px-4 py-3 focus:border-pink-oke-boss focus:outline-none" placeholder="Contoh: 001" required>
+                                <input id="rt" name="rt" type="text" value="{{ old('rt', $user?->rt) }}" class="w-full rounded-2xl border border-gray-200 px-4 py-3 focus:border-pink-oke-boss focus:outline-none" placeholder="Contoh: 001" required>
                             </div>
                             <div>
                                 <label for="rw" class="block text-sm font-semibold text-gray-700 mb-2">RW</label>
-                                <input id="rw" name="rw" type="text" value="{{ old('rw') }}" class="w-full rounded-2xl border border-gray-200 px-4 py-3 focus:border-pink-oke-boss focus:outline-none" placeholder="Contoh: 002" required>
+                                <input id="rw" name="rw" type="text" value="{{ old('rw', $user?->rw) }}" class="w-full rounded-2xl border border-gray-200 px-4 py-3 focus:border-pink-oke-boss focus:outline-none" placeholder="Contoh: 002" required>
                             </div>
                         </div>
 
@@ -142,9 +152,9 @@
 
                                 <div id="map" class="w-full z-0"></div>
 
-                                <input id="maps_link" name="maps_link" type="hidden" value="{{ old('maps_link') }}">
-                                <input id="maps_latitude" name="maps_latitude" type="hidden" value="{{ old('maps_latitude') }}">
-                                <input id="maps_longitude" name="maps_longitude" type="hidden" value="{{ old('maps_longitude') }}">
+                                <input id="maps_link" name="maps_link" type="hidden" value="{{ old('maps_link', $user?->maps_link) }}">
+                                <input id="maps_latitude" name="maps_latitude" type="hidden" value="{{ old('maps_latitude', $user?->maps_latitude) }}">
+                                <input id="maps_longitude" name="maps_longitude" type="hidden" value="{{ old('maps_longitude', $user?->maps_longitude) }}">
                             </div>
                             <p id="location-feedback" class="mt-2 text-xs text-gray-500">Titik belum dipilih. Klik pada peta atau gunakan lokasi saya sekarang.</p>
                         </div>
@@ -264,11 +274,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const mapsLongitudeInput = document.getElementById('maps_longitude');
     const locationFeedback = document.getElementById('location-feedback');
 
-    const oldProvinceId = @json(old('province_id'));
-    const oldCityId = @json(old('city_id'));
-    const oldSubdistrictId = @json(old('subdistrict_id'));
-    const oldDistrictName = @json(old('district_name'));
-    const oldSubdistrictName = @json(old('subdistrict_name'));
+    const oldProvinceId = @json(old('province_id', $user?->province_id));
+    const oldCityId = @json(old('city_id', $user?->city_id));
+    const oldSubdistrictId = @json(old('subdistrict_id', $user?->subdistrict_id));
+    const oldDistrictName = @json(old('district_name', $user?->district_name));
+    const oldSubdistrictName = @json(old('subdistrict_name', $user?->subdistrict_name));
 
     let districts = [];
     let subdistricts = [];
@@ -593,10 +603,64 @@ document.addEventListener('DOMContentLoaded', () => {
 
     loadProvinces().catch(() => {
         setSelectOptions(provinceSelect, [], 'Gagal memuat provinsi');
+        setSelectOptions(provinceSelect, [], 'Gagal memuat provinsi');
         setSelectOptions(citySelect, [], 'Gagal memuat kabupaten / kota');
         districtInput.placeholder = 'Gagal memuat data kecamatan';
         subdistrictInput.placeholder = 'Gagal memuat data kelurahan';
         locationFeedback.textContent = 'API wilayah gagal dimuat. Anda masih bisa melanjutkan dengan mengisi manual jika field tersedia.';
+    });
+
+    const checkoutForm = document.getElementById('checkout-form');
+    checkoutForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const submitBtn = document.querySelector('button[form="checkout-form"]');
+        const originalText = submitBtn.innerText;
+        
+        // Disable button
+        submitBtn.disabled = true;
+        submitBtn.innerText = 'Memproses Pesanan...';
+
+        const formData = new FormData(checkoutForm);
+
+        try {
+            const response = await fetch(checkoutForm.action, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Accept': 'application/json'
+                },
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                if (response.status === 422) {
+                    const errors = Object.values(data.errors).flat().join('\n');
+                    throw new Error(errors);
+                }
+                throw new Error(data.message || 'Terjadi kesalahan saat memproses pesanan.');
+            }
+
+            if (data.success) {
+                // 1. Buka WhatsApp
+                window.open(data.whatsapp_url, '_blank');
+
+                // 2. Redirect ke halaman detail
+                window.location.href = data.redirect_url;
+            }
+        } catch (error) {
+            submitBtn.disabled = false;
+            submitBtn.innerText = originalText;
+
+            Swal.fire({
+                title: 'Data Belum Lengkap',
+                text: error.message,
+                icon: 'warning',
+                confirmButtonColor: '#ec4899'
+            });
+        }
     });
 });
 </script>

@@ -99,6 +99,10 @@
                             <p class="text-[10px] text-gray-400 font-bold uppercase mb-1">Telepon / WhatsApp</p>
                             <p class="text-sm font-bold text-gray-900">{{ $order->phone }}</p>
                         </div>
+                        <div class="p-4 bg-gray-50 rounded-2xl">
+                            <p class="text-[10px] text-gray-400 font-bold uppercase mb-1">Email Akun</p>
+                            <p class="text-sm font-bold text-gray-900">{{ $order->user?->email ?? 'Tidak terhubung ke akun pelanggan' }}</p>
+                        </div>
                     </div>
                 </div>
 
@@ -132,6 +136,10 @@
                     </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div class="p-3 bg-gray-50 rounded-xl">
+                            <p class="text-[10px] text-gray-400 font-bold mb-0.5 uppercase">Kelurahan</p>
+                            <p class="text-xs text-gray-900 font-bold">{{ $order->subdistrict_name }}</p>
+                        </div>
+                        <div class="p-3 bg-gray-50 rounded-xl">
                             <p class="text-[10px] text-gray-400 font-bold mb-0.5 uppercase">Provinsi</p>
                             <p class="text-xs text-gray-900 font-bold">{{ $order->province_name }}</p>
                         </div>
@@ -147,6 +155,13 @@
                             <p class="text-[10px] text-gray-400 font-bold mb-0.5 uppercase">RT/RW</p>
                             <p class="text-xs text-gray-900 font-bold">{{ $order->rt }} / {{ $order->rw }}</p>
                         </div>
+                    </div>
+                    <div class="p-4 bg-gray-50 rounded-2xl">
+                        <p class="text-[10px] text-gray-400 font-bold mb-1 uppercase tracking-tight">Ringkasan Pengiriman</p>
+                        <p class="text-sm text-gray-700 leading-relaxed">
+                            Penerima {{ $order->recipient_name }}, telepon {{ $order->phone }}, alamat {{ $order->address_line }},
+                            RT/RW {{ $order->rt }}/{{ $order->rw }}, {{ $order->subdistrict_name }}, {{ $order->district_name }}, {{ $order->city_name }}, {{ $order->province_name }}.
+                        </p>
                     </div>
                 </div>
             </div>

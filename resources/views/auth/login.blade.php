@@ -30,7 +30,7 @@
             </div>
         @endif
 
-        <form class="mt-8 space-y-6" action="{{ route('login.authenticate') }}" method="POST">
+        <form class="mt-8 space-y-6" action="{{ route('admin.login.authenticate') }}" method="POST">
             @csrf
             <div class="rounded-md shadow-sm space-y-4">
                 <div>
@@ -53,7 +53,7 @@
                 </div>
 
                 <div class="text-sm">
-                    <a href="#" class="font-medium text-pink-600 hover:text-pink-500"> Lupa password? </a>
+                    <a href="{{ route('login') }}" class="font-medium text-pink-600 hover:text-pink-500"> Login sebagai user </a>
                 </div>
             </div>
 

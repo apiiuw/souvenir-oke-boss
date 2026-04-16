@@ -15,6 +15,15 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        User::firstOrCreate(
+            ['email' => 'admin@oke-boss.com'],
+            [
+                'name' => 'Admin Oke Boss',
+                'password' => 'password',
+                'role' => 'admin',
+            ]
+        );
+
         $this->call([
             CategorySeeder::class,
             ProductSeeder::class,

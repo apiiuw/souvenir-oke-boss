@@ -22,14 +22,14 @@ class LoginController extends Controller
             'password' => ['required'],
         ]);
 
-        if (Auth::attempt($credentials)) {
+        if (Auth::attempt(array_merge($credentials, ['role' => 'admin']), $request->boolean('remember-me'))) {
             $request->session()->regenerate();
 
             return redirect()->intended('/admin/dashboard');
         }
 
         return back()->withErrors([
-            'email' => 'Informasi akun tidak sesuai dengan data kami.',
+            'email' => 'Informasi akun admin tidak sesuai dengan data kami.',
         ])->onlyInput('email');
     }
 
