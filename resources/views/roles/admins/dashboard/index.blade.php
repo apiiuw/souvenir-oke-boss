@@ -86,10 +86,6 @@
                     <h3 class="text-lg font-bold text-gray-900">Tren Penjualan</h3>
                     <p class="text-xs text-gray-500">Pertumbuhan pendapatan 6 bulan terakhir</p>
                 </div>
-                <select class="text-xs border-gray-200 rounded-lg focus:ring-pink-500 focus:border-pink-500">
-                    <option>Semua Data</option>
-                    <option>Bulan Ini</option>
-                </select>
             </div>
             <div class="h-80">
                 <canvas id="salesChart"></canvas>
