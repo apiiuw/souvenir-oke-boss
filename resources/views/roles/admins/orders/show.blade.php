@@ -73,10 +73,21 @@
                         @endforeach
                     </div>
                 </div>
-                <div class="px-6 py-6 bg-pink-50/50 border-t border-pink-100 flex justify-between items-center">
-                    <span class="text-sm font-bold text-gray-600 uppercase tracking-widest">Grand Total</span>
-                    <span class="text-2xl font-black text-pink-600">Rp {{ number_format($order->total_price, 0, ',', '.') }}</span>
+                <div class="px-6 py-6 bg-pink-50/50 border-t border-pink-100 space-y-2">
+                    <div class="flex justify-between items-center text-sm text-gray-600 font-bold uppercase tracking-widest">
+                        <span>Subtotal Produk</span>
+                        <span>Rp {{ number_format($order->total_price, 0, ',', '.') }}</span>
+                    </div>
+                    <div class="flex justify-between items-center text-sm text-gray-600 font-bold uppercase tracking-widest">
+                        <span>Ongkos Kirim ({{ strtoupper($order->courier) }} - {{ $order->service }})</span>
+                        <span>Rp {{ number_format($order->shipping_cost, 0, ',', '.') }}</span>
+                    </div>
+                    <div class="flex justify-between items-center pt-2 border-t border-pink-200">
+                        <span class="text-sm font-black text-gray-900 uppercase tracking-widest">Grand Total</span>
+                        <span class="text-2xl font-black text-pink-600">Rp {{ number_format($order->grand_total, 0, ',', '.') }}</span>
+                    </div>
                 </div>
+
             </div>
 
             <!-- Meta Info -->

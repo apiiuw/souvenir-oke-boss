@@ -8,10 +8,19 @@ use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use App\Services\RajaOngkirService;
+
 
 class CheckoutController extends Controller
 {
     private const WHATSAPP_NUMBER = '085780007175';
+    protected $rajaOngkir;
+
+    public function __construct(RajaOngkirService $rajaOngkir)
+    {
+        $this->rajaOngkir = $rajaOngkir;
+    }
+
 
     private function getCart()
     {
@@ -74,10 +83,15 @@ class CheckoutController extends Controller
             'maps_latitude' => ['nullable', 'numeric', 'between:-90,90'],
             'maps_longitude' => ['nullable', 'numeric', 'between:-180,180'],
             'delivery_note' => ['nullable', 'string'],
+            'shipping_cost' => ['required', 'numeric'],
+            'courier' => ['required', 'string'],
+            'service' => ['required', 'string'],
         ], [
             'maps_link.required' => 'Silakan pilih titik lokasi pada peta.',
             'maps_link.url' => 'Titik maps harus berupa link yang valid.',
+            'shipping_cost.required' => 'Silakan pilih layanan pengiriman.',
         ]);
+
 
         $normalizedPhone = preg_replace('/\D+/', '', $validated['phone']);
         $whatsappNumber = $this->normalizeWhatsappNumber(self::WHATSAPP_NUMBER);
@@ -85,12 +99,16 @@ class CheckoutController extends Controller
 
         $totals = $cart->items->reduce(function ($carry, $item) {
             $subtotal = $item->product->price * $item->qty;
+            $weight = ($item->product->weight ?? 200) * $item->qty;
+
 
             $carry['qty'] += $item->qty;
             $carry['price'] += $subtotal;
+            $carry['weight'] += $weight;
 
             return $carry;
-        }, ['qty' => 0, 'price' => 0]);
+        }, ['qty' => 0, 'price' => 0, 'weight' => 0]);
+
 
         // Final Stock Check
         foreach ($cart->items as $item) {
@@ -102,6 +120,7 @@ class CheckoutController extends Controller
         }
 
         $message = $this->buildWhatsappMessage($orderCode, $validated, $cart, $totals['qty'], $totals['price'], $normalizedPhone);
+
 
         $order = DB::transaction(function () use ($cart, $validated, $totals, $message, $orderCode, $whatsappNumber, $normalizedPhone) {
             if (auth()->check()) {
@@ -148,10 +167,16 @@ class CheckoutController extends Controller
                 'maps_longitude' => $validated['maps_longitude'] ?: null,
                 'delivery_note' => $validated['delivery_note'] ?: null,
                 'total_qty' => $totals['qty'],
+                'total_weight' => $totals['weight'],
                 'total_price' => $totals['price'],
+                'shipping_cost' => $validated['shipping_cost'],
+                'grand_total' => $totals['price'] + $validated['shipping_cost'],
+                'courier' => $validated['courier'],
+                'service' => $validated['service'],
                 'whatsapp_number' => $whatsappNumber,
                 'whatsapp_message' => $message,
             ]);
+
 
             foreach ($cart->items as $item) {
                 $order->items()->create([
@@ -193,6 +218,7 @@ class CheckoutController extends Controller
 
     private function buildWhatsappMessage(string $orderCode, array $validated, Cart $cart, int $totalQty, int $totalPrice, string $normalizedPhone): string
     {
+        $grandTotal = $totalPrice + $validated['shipping_cost'];
         $lines = [
             'Halo Admin Souvenir Oke Boss, saya ingin melakukan checkout.',
             '',
@@ -210,6 +236,11 @@ class CheckoutController extends Controller
             '   Provinsi: ' . $validated['province_name'],
             '*Titik Maps:* ' . ($validated['maps_link'] ? $validated['maps_link'] : '-'),
             '*Catatan:* ' . ($validated['delivery_note'] ?: '-'),
+            '',
+            '*PENGIRIMAN:*',
+            '*Kurir:* ' . strtoupper($validated['courier']),
+            '*Layanan:* ' . $validated['service'],
+            '*Ongkos Kirim:* Rp ' . number_format($validated['shipping_cost'], 0, ',', '.'),
             '',
             '*DETAIL PESANAN:*',
         ];
@@ -229,7 +260,9 @@ class CheckoutController extends Controller
 
         $lines[] = '------------------------';
         $lines[] = '*Total Item:* ' . $totalQty . ' pcs';
-        $lines[] = '*Total Belanja:* Rp ' . number_format($totalPrice, 0, ',', '.');
+        $lines[] = '*Subtotal Belanja:* Rp ' . number_format($totalPrice, 0, ',', '.');
+        $lines[] = '*Total Ongkos Kirim:* Rp ' . number_format($validated['shipping_cost'], 0, ',', '.');
+        $lines[] = '*Total Pembayaran:* Rp ' . number_format($grandTotal, 0, ',', '.');
         $lines[] = '------------------------';
         $lines[] = '';
         $lines[] = 'Mohon dibantu untuk proses pesanan saya. Terima kasih!';
@@ -257,4 +290,41 @@ class CheckoutController extends Controller
 
         return $digits;
     }
+
+    public function getProvinces()
+    {
+        return response()->json($this->rajaOngkir->getProvinces());
+    }
+
+    public function getCities($provinceId)
+    {
+        return response()->json($this->rajaOngkir->getCities($provinceId));
+    }
+
+    public function getDistricts($cityId)
+    {
+        return response()->json($this->rajaOngkir->getDistricts($cityId));
+    }
+
+    public function getSubDistricts($districtId)
+    {
+        return response()->json($this->rajaOngkir->getSubDistricts($districtId));
+    }
+
+
+    public function getCost(Request $request)
+    {
+        $request->validate([
+            'destination' => 'required',
+            'weight' => 'required|numeric',
+            'courier' => 'required|string'
+        ]);
+
+        $origin = '17601'; // Gambir, Jakarta Pusat (Subdistrict ID)
+
+        $costs = $this->rajaOngkir->getCost($origin, $request->destination, $request->weight, $request->courier);
+
+        return response()->json($costs);
+    }
 }
+

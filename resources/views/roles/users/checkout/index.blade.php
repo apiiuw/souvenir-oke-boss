@@ -113,18 +113,17 @@
 
                         <div class="grid gap-4 md:grid-cols-2">
                             <div>
-                                <label for="district_name" class="block text-sm font-semibold text-gray-700 mb-2">Kecamatan</label>
-                                <input id="district_name" name="district_name" type="text" list="district-suggestions" value="{{ old('district_name', $user?->district_name) }}" class="w-full rounded-2xl border border-gray-200 px-4 py-3 focus:border-pink-oke-boss focus:outline-none" placeholder="Pilih kabupaten/kota terlebih dahulu" autocomplete="off" required>
-                                <datalist id="district-suggestions"></datalist>
-                                <input type="hidden" id="district_id" name="district_id" value="{{ old('district_id', $user?->district_id) }}">
+                                <label for="district_id" class="block text-sm font-semibold text-gray-700 mb-2">Kecamatan</label>
+                                <select id="district_id" name="district_id" class="w-full rounded-2xl border border-gray-200 px-4 py-3 focus:border-pink-oke-boss focus:outline-none" required disabled></select>
+                                <input type="hidden" id="district_name" name="district_name" value="{{ old('district_name', $user?->district_name) }}">
                             </div>
                             <div>
-                                <label for="subdistrict_name" class="block text-sm font-semibold text-gray-700 mb-2">Kelurahan / Desa</label>
-                                <input id="subdistrict_name" name="subdistrict_name" type="text" list="subdistrict-suggestions" value="{{ old('subdistrict_name', $user?->subdistrict_name) }}" class="w-full rounded-2xl border border-gray-200 px-4 py-3 focus:border-pink-oke-boss focus:outline-none" placeholder="Pilih kecamatan terlebih dahulu" autocomplete="off" required>
-                                <datalist id="subdistrict-suggestions"></datalist>
-                                <input type="hidden" id="subdistrict_id" name="subdistrict_id" value="{{ old('subdistrict_id', $user?->subdistrict_id) }}">
+                                <label for="subdistrict_id" class="block text-sm font-semibold text-gray-700 mb-2">Kelurahan / Desa</label>
+                                <select id="subdistrict_id" name="subdistrict_id" class="w-full rounded-2xl border border-gray-200 px-4 py-3 focus:border-pink-oke-boss focus:outline-none" required disabled></select>
+                                <input type="hidden" id="subdistrict_name" name="subdistrict_name" value="{{ old('subdistrict_name', $user?->subdistrict_name) }}">
                             </div>
                         </div>
+
 
                         <div class="grid gap-4 md:grid-cols-2">
                             <div>
@@ -165,6 +164,37 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+                    <div class="mb-5">
+                        <h2 class="text-lg font-bold">Layanan Pengiriman</h2>
+                        <p class="text-sm text-gray-500">Pilih kurir dan layanan yang diinginkan.</p>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label for="courier" class="block text-sm font-semibold text-gray-700 mb-2">Kurir</label>
+                            <select id="courier" name="courier" class="w-full rounded-2xl border border-gray-200 px-4 py-3 focus:border-pink-oke-boss focus:outline-none" required>
+                                <option value="">Pilih Kurir</option>
+                                <option value="jne">JNE</option>
+                                <option value="pos">POS Indonesia</option>
+                                <option value="tiki">TIKI</option>
+                            </select>
+                        </div>
+
+                        <div id="service-container" class="hidden">
+                            <label for="service" class="block text-sm font-semibold text-gray-700 mb-2">Layanan</label>
+                            <select id="service" name="service" class="w-full rounded-2xl border border-gray-200 px-4 py-3 focus:border-pink-oke-boss focus:outline-none" required></select>
+                        </div>
+                        
+                        <input type="hidden" id="shipping_cost" name="shipping_cost" value="0">
+                        
+                        <div id="shipping-info" class="hidden rounded-2xl border border-pink-100 bg-[#fff7fb] px-4 py-3 text-sm text-gray-600">
+                            Estimasi sampai: <span id="estimate-time" class="font-semibold"></span>
+                        </div>
+                    </div>
+                </div>
+
             </form>
 
             <div class="space-y-6">
@@ -178,6 +208,7 @@
                                 $totalQty += $item->qty;
                                 $totalPrice += $subtotal;
                             @endphp
+
                             <div class="flex gap-4 border-b border-gray-100 pb-4 last:border-0 last:pb-0">
                                 <img src="{{ asset('storage/' . $item->product->images->first()->image) }}"
                                      class="w-16 h-16 object-cover rounded-2xl border border-gray-100">
@@ -206,10 +237,15 @@
                             <span>Subtotal</span>
                             <span>Rp {{ number_format($totalPrice, 0, ',', '.') }}</span>
                         </div>
-                        <div class="flex items-center justify-between text-base font-bold text-pink-oke-boss border-t border-pink-100 pt-3">
-                            <span>Total Belanja</span>
-                            <span>Rp {{ number_format($totalPrice, 0, ',', '.') }}</span>
+                        <div class="flex items-center justify-between text-gray-600">
+                            <span>Ongkos Kirim</span>
+                            <span id="summary-shipping-cost">Rp 0</span>
                         </div>
+                        <div class="flex items-center justify-between text-base font-bold text-pink-oke-boss border-t border-pink-100 pt-3">
+                            <span>Total Pembayaran</span>
+                            <span id="summary-grand-total">Rp {{ number_format($totalPrice, 0, ',', '.') }}</span>
+                        </div>
+
                     </div>
 
                     <p class="mt-4 text-sm text-gray-600">Saat tombol checkout ditekan, data pesanan akan disimpan lalu Anda diarahkan ke WhatsApp admin untuk melanjutkan pemesanan.</p>
@@ -253,18 +289,16 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    const regionApiBase = 'https://www.emsifa.com/api-wilayah-indonesia/api';
-
     const provinceSelect = document.getElementById('province_id');
     const citySelect = document.getElementById('city_id');
+    const districtSelect = document.getElementById('district_id');
+    const subdistrictSelect = document.getElementById('subdistrict_id');
+    
     const provinceNameInput = document.getElementById('province_name');
     const cityNameInput = document.getElementById('city_name');
-    const districtInput = document.getElementById('district_name');
-    const districtIdInput = document.getElementById('district_id');
-    const districtList = document.getElementById('district-suggestions');
-    const subdistrictInput = document.getElementById('subdistrict_name');
-    const subdistrictIdInput = document.getElementById('subdistrict_id');
-    const subdistrictList = document.getElementById('subdistrict-suggestions');
+    const districtNameInput = document.getElementById('district_name');
+    const subdistrictNameInput = document.getElementById('subdistrict_name');
+
     const customerNameInput = document.getElementById('customer_name');
     const recipientNameInput = document.getElementById('recipient_name');
     const sameAsCustomerCheckbox = document.getElementById('same-as-customer');
@@ -273,21 +307,35 @@ document.addEventListener('DOMContentLoaded', () => {
     const mapsLatitudeInput = document.getElementById('maps_latitude');
     const mapsLongitudeInput = document.getElementById('maps_longitude');
     const locationFeedback = document.getElementById('location-feedback');
+    
+    const courierSelect = document.getElementById('courier');
+    const serviceContainer = document.getElementById('service-container');
+    const serviceSelect = document.getElementById('service');
+    const shippingCostInput = document.getElementById('shipping_cost');
+    const shippingInfo = document.getElementById('shipping-info');
+    const estimateTimeSpan = document.getElementById('estimate-time');
+    const summaryShippingCost = document.getElementById('summary-shipping-cost');
+    const summaryGrandTotal = document.getElementById('summary-grand-total');
+
+    const totalWeight = @json($cart->items->sum(fn($item) => ($item->product->weight ?? 200) * $item->qty));
+    const totalPrice = @json($totalPrice);
 
     const oldProvinceId = @json(old('province_id', $user?->province_id));
     const oldCityId = @json(old('city_id', $user?->city_id));
-    const oldSubdistrictId = @json(old('subdistrict_id', $user?->subdistrict_id));
-    const oldDistrictName = @json(old('district_name', $user?->district_name));
-    const oldSubdistrictName = @json(old('subdistrict_name', $user?->subdistrict_name));
+    const oldDistrictId = @json(old('district_id', $user?->district_id));
+    const oldSubDistrictId = @json(old('subdistrict_id', $user?->subdistrict_id));
 
-    let districts = [];
-    let subdistricts = [];
-    let shouldRestoreDistrict = true;
-    let shouldRestoreSubdistrict = true;
+
+    const formatRupiah = (number) => {
+        return new Intl.NumberFormat('id-ID', {
+            style: 'currency',
+            currency: 'IDR',
+            minimumFractionDigits: 0
+        }).format(number);
+    };
 
     const setSelectOptions = (select, items, placeholder) => {
         select.innerHTML = '';
-
         const defaultOption = document.createElement('option');
         defaultOption.value = '';
         defaultOption.textContent = placeholder;
@@ -295,373 +343,318 @@ document.addEventListener('DOMContentLoaded', () => {
 
         items.forEach((item) => {
             const option = document.createElement('option');
-            option.value = item.id;
-            option.textContent = item.name;
+            option.value = item.province_id || item.city_id || item.id;
+            option.textContent = item.province || item.city_name || item.name;
+            if (item.type) {
+                option.textContent = `${item.type} ${item.city_name}`;
+            }
             select.appendChild(option);
         });
     };
 
-    const fillDatalist = (list, items) => {
-        list.innerHTML = '';
-
-        items.forEach((item) => {
-            const option = document.createElement('option');
-            option.value = item.name;
-            option.label = item.name;
-            list.appendChild(option);
-        });
-    };
-
-    const setProvinceName = () => {
-        const selected = provinceSelect.options[provinceSelect.selectedIndex];
-        provinceNameInput.value = selected && selected.value ? selected.text : '';
-    };
-
-    const setCityName = () => {
-        const selected = citySelect.options[citySelect.selectedIndex];
-        cityNameInput.value = selected && selected.value ? selected.text : '';
-    };
-
-    const syncDistrictSelection = () => {
-        const match = districts.find((item) => item.name.toLowerCase() === districtInput.value.trim().toLowerCase());
-            districtIdInput.value = match ? match.id : '';
-
-        if (!match) {
-            subdistricts = [];
-            subdistrictInput.value = '';
-            subdistrictIdInput.value = '';
-            subdistrictList.innerHTML = '';
-            subdistrictInput.placeholder = 'Pilih kecamatan dari sugesti yang tersedia';
-            return;
-        }
-
-        const selectedSubdistrictId = shouldRestoreSubdistrict ? oldSubdistrictId : null;
-        const selectedSubdistrictName = shouldRestoreSubdistrict ? oldSubdistrictName : '';
-
-        shouldRestoreSubdistrict = false;
-        loadSubdistricts(match.id, selectedSubdistrictId, selectedSubdistrictName);
-    };
-
-    const syncSubdistrictSelection = () => {
-        const match = subdistricts.find((item) => item.name.toLowerCase() === subdistrictInput.value.trim().toLowerCase());
-        subdistrictIdInput.value = match ? match.id : '';
-    };
-
     const loadProvinces = async () => {
-        const response = await fetch(`${regionApiBase}/provinces.json`);
-        const data = await response.json();
-        setSelectOptions(provinceSelect, data, 'Pilih provinsi');
+        try {
+            const response = await fetch("{{ route('shipping.provinces') }}");
+            const data = await response.json();
+            setSelectOptions(provinceSelect, data, 'Pilih provinsi');
 
-        if (oldProvinceId) {
-            provinceSelect.value = oldProvinceId;
-            setProvinceName();
-            await loadCities(oldProvinceId, oldCityId);
+            if (oldProvinceId) {
+                provinceSelect.value = oldProvinceId;
+                const selected = provinceSelect.options[provinceSelect.selectedIndex];
+                provinceNameInput.value = selected ? selected.text : '';
+                await loadCities(oldProvinceId, oldCityId);
+            }
+        } catch (error) {
+            console.error('Error loading provinces:', error);
         }
     };
 
     const loadCities = async (provinceId, selectedCityId = null) => {
         citySelect.disabled = true;
+        districtSelect.disabled = true;
+        subdistrictSelect.disabled = true;
         setSelectOptions(citySelect, [], 'Memuat kabupaten / kota...');
-        districtInput.value = '';
-        districtIdInput.value = '';
-        subdistrictInput.value = '';
-        subdistrictIdInput.value = '';
-        districtList.innerHTML = '';
-        subdistrictList.innerHTML = '';
+        setSelectOptions(districtSelect, [], 'Pilih kabupaten / kota terlebih dahulu');
+        setSelectOptions(subdistrictSelect, [], 'Pilih kecamatan terlebih dahulu');
 
-        if (!provinceId) {
-            setSelectOptions(citySelect, [], 'Pilih provinsi terlebih dahulu');
-            cityNameInput.value = '';
-            citySelect.disabled = true;
-            return;
-        }
+        if (!provinceId) return;
 
-        const response = await fetch(`${regionApiBase}/regencies/${provinceId}.json`);
-        const data = await response.json();
-        setSelectOptions(citySelect, data, 'Pilih kabupaten / kota');
-        citySelect.disabled = false;
+        try {
+            const response = await fetch(`{{ url('/shipping/cities') }}/${provinceId}`);
+            const data = await response.json();
+            setSelectOptions(citySelect, data, 'Pilih kabupaten / kota');
+            citySelect.disabled = false;
 
-        if (selectedCityId) {
-            citySelect.value = selectedCityId;
-            setCityName();
-            await loadDistricts(selectedCityId, shouldRestoreDistrict ? oldDistrictName : '');
-        }
-    };
-
-    const loadDistricts = async (cityId, selectedDistrictName = '') => {
-        districtInput.placeholder = 'Memuat kecamatan...';
-        subdistrictInput.placeholder = 'Pilih kecamatan terlebih dahulu';
-        districtIdInput.value = '';
-        subdistrictInput.value = '';
-        subdistrictIdInput.value = '';
-        subdistrictList.innerHTML = '';
-
-        if (!cityId) {
-            districts = [];
-            fillDatalist(districtList, []);
-            districtInput.placeholder = 'Pilih kabupaten/kota terlebih dahulu';
-            return;
-        }
-
-        const response = await fetch(`${regionApiBase}/districts/${cityId}.json`);
-        districts = await response.json();
-        fillDatalist(districtList, districts);
-        districtInput.placeholder = 'Ketik atau pilih kecamatan';
-
-        if (selectedDistrictName) {
-            districtInput.value = selectedDistrictName;
-            shouldRestoreDistrict = false;
-            syncDistrictSelection();
-        }
-    };
-
-    const loadSubdistricts = async (districtId, selectedSubdistrictId = null, selectedSubdistrictName = '') => {
-        subdistrictInput.placeholder = 'Memuat kelurahan / desa...';
-        subdistrictInput.value = '';
-        subdistrictIdInput.value = '';
-        subdistrictList.innerHTML = '';
-
-        const response = await fetch(`${regionApiBase}/villages/${districtId}.json`);
-        subdistricts = await response.json();
-        fillDatalist(subdistrictList, subdistricts);
-        subdistrictInput.placeholder = 'Ketik atau pilih kelurahan / desa';
-
-        if (selectedSubdistrictName) {
-            subdistrictInput.value = selectedSubdistrictName;
-            syncSubdistrictSelection();
-        } else if (selectedSubdistrictId) {
-            const match = subdistricts.find((item) => item.id === selectedSubdistrictId);
-            if (match) {
-                subdistrictInput.value = match.name;
-                syncSubdistrictSelection();
+            if (selectedCityId) {
+                citySelect.value = selectedCityId;
+                const selected = citySelect.options[citySelect.selectedIndex];
+                cityNameInput.value = selected ? selected.text : '';
+                await loadDistricts(selectedCityId, oldDistrictId);
             }
+        } catch (error) {
+            console.error('Error loading cities:', error);
         }
+    };
+
+    const loadDistricts = async (cityId, selectedDistrictId = null) => {
+        districtSelect.disabled = true;
+        subdistrictSelect.disabled = true;
+        setSelectOptions(districtSelect, [], 'Memuat kecamatan...');
+        setSelectOptions(subdistrictSelect, [], 'Pilih kecamatan terlebih dahulu');
+
+        if (!cityId) return;
+
+        try {
+            const response = await fetch(`{{ url('/shipping/districts') }}/${cityId}`);
+            const data = await response.json();
+            setSelectOptions(districtSelect, data, 'Pilih kecamatan');
+            districtSelect.disabled = false;
+
+            if (selectedDistrictId) {
+                districtSelect.value = selectedDistrictId;
+                const selected = districtSelect.options[districtSelect.selectedIndex];
+                districtNameInput.value = selected ? selected.text : '';
+                await loadSubDistricts(selectedDistrictId, oldSubDistrictId);
+            }
+        } catch (error) {
+            console.error('Error loading districts:', error);
+        }
+    };
+
+    const loadSubDistricts = async (districtId, selectedSubDistrictId = null) => {
+        subdistrictSelect.disabled = true;
+        setSelectOptions(subdistrictSelect, [], 'Memuat kelurahan / desa...');
+
+        if (!districtId) return;
+
+        try {
+            const response = await fetch(`{{ url('/shipping/sub-districts') }}/${districtId}`);
+            const data = await response.json();
+            setSelectOptions(subdistrictSelect, data, 'Pilih kelurahan / desa');
+            subdistrictSelect.disabled = false;
+
+            if (selectedSubDistrictId) {
+                subdistrictSelect.value = selectedSubDistrictId;
+                const selected = subdistrictSelect.options[subdistrictSelect.selectedIndex];
+                subdistrictNameInput.value = selected ? selected.text : '';
+            }
+        } catch (error) {
+            console.error('Error loading sub-districts:', error);
+        }
+    };
+
+    const calculateShipping = async () => {
+        const subdistrictId = subdistrictSelect.value;
+        const courier = courierSelect.value;
+
+        if (!subdistrictId || !courier) {
+            serviceContainer.classList.add('hidden');
+            shippingInfo.classList.add('hidden');
+            updateSummary(0);
+            return;
+        }
+
+        serviceSelect.innerHTML = '<option value="">Memuat layanan...</option>';
+        serviceContainer.classList.remove('hidden');
+
+        try {
+            const response = await fetch("{{ route('shipping.cost') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': "{{ csrf_token() }}"
+                },
+                body: JSON.stringify({
+                    destination: subdistrictId,
+                    weight: totalWeight,
+                    courier: courier
+                })
+            });
+
+            const data = await response.json();
+            
+            serviceSelect.innerHTML = '<option value="">Pilih Layanan</option>';
+            if (data && data.length > 0) {
+                // Filter logic
+                let filteredData = data;
+                const isHeavy = totalWeight >= 10000; // 10kg threshold for trucking
+
+                if (isHeavy) {
+                    // Even if heavy, filter out vehicle services
+                    filteredData = data.filter(s => {
+                        const desc = s.description.toLowerCase();
+                        return !desc.includes('motor') && !desc.includes('mobil') && !desc.includes('kendaraan');
+                    });
+                } else {
+                    // If light, filter out Trucking/Cargo services AND vehicle services
+                    filteredData = data.filter(s => {
+                        const name = s.service.toLowerCase();
+                        const desc = s.description.toLowerCase();
+                        const isTrucking = name.includes('jtr') || desc.includes('trucking') || desc.includes('cargo');
+                        const isVehicle = desc.includes('motor') || desc.includes('mobil') || desc.includes('kendaraan');
+                        
+                        return !isTrucking && !isVehicle;
+                    });
+                }
+
+
+                if (filteredData.length === 0 && data.length > 0) {
+                    filteredData = data; // Fallback if filter leaves nothing
+                }
+
+                filteredData.forEach(s => {
+                    const option = document.createElement('option');
+                    option.value = s.cost;
+                    option.textContent = `${s.service} (${s.description}) - ${formatRupiah(s.cost)}`;
+                    option.dataset.etd = s.etd;
+                    option.dataset.serviceName = s.service;
+                    serviceSelect.appendChild(option);
+                });
+            } else {
+
+                serviceSelect.innerHTML = '<option value="">Layanan tidak tersedia</option>';
+            }
+        } catch (error) {
+            console.error('Error calculating shipping:', error);
+            serviceSelect.innerHTML = '<option value="">Gagal memuat layanan</option>';
+        }
+    };
+
+
+    const updateSummary = (cost) => {
+        shippingCostInput.value = cost;
+        summaryShippingCost.textContent = formatRupiah(cost);
+        summaryGrandTotal.textContent = formatRupiah(totalPrice + parseInt(cost));
     };
 
     provinceSelect.addEventListener('change', async () => {
-        shouldRestoreDistrict = false;
-        shouldRestoreSubdistrict = false;
-        setProvinceName();
-        cityNameInput.value = '';
+        const selected = provinceSelect.options[provinceSelect.selectedIndex];
+        provinceNameInput.value = selected ? selected.text : '';
         await loadCities(provinceSelect.value);
+        calculateShipping();
     });
 
     citySelect.addEventListener('change', async () => {
-        shouldRestoreDistrict = false;
-        shouldRestoreSubdistrict = false;
-        setCityName();
+        const selected = citySelect.options[citySelect.selectedIndex];
+        cityNameInput.value = selected ? selected.text : '';
         await loadDistricts(citySelect.value);
+        calculateShipping();
     });
 
-    districtInput.addEventListener('input', () => {
-        shouldRestoreSubdistrict = false;
-        districtIdInput.value = '';
-        subdistrictInput.value = '';
-        subdistrictIdInput.value = '';
-        subdistrictList.innerHTML = '';
+    districtSelect.addEventListener('change', async () => {
+        const selected = districtSelect.options[districtSelect.selectedIndex];
+        districtNameInput.value = selected ? selected.text : '';
+        await loadSubDistricts(districtSelect.value);
+        calculateShipping();
     });
 
-    districtInput.addEventListener('change', syncDistrictSelection);
-    districtInput.addEventListener('blur', syncDistrictSelection);
-
-    subdistrictInput.addEventListener('input', () => {
-        subdistrictIdInput.value = '';
+    subdistrictSelect.addEventListener('change', () => {
+        const selected = subdistrictSelect.options[subdistrictSelect.selectedIndex];
+        subdistrictNameInput.value = selected ? selected.text : '';
+        calculateShipping();
     });
 
-    subdistrictInput.addEventListener('change', syncSubdistrictSelection);
-    subdistrictInput.addEventListener('blur', syncSubdistrictSelection);
 
+    courierSelect.addEventListener('change', calculateShipping);
+
+    serviceSelect.addEventListener('change', () => {
+        const selected = serviceSelect.options[serviceSelect.selectedIndex];
+        if (selected && selected.value) {
+            updateSummary(selected.value);
+            estimateTimeSpan.textContent = `${selected.dataset.etd}`;
+            shippingInfo.classList.remove('hidden');
+            
+            // Set hidden service name for form submission if needed, 
+            // but we can just use the value and service name in controller if we store it.
+            // Let's just store the service name in a hidden field or similar.
+            // For now, let's just make sure the selected option text or value is clear.
+        } else {
+            updateSummary(0);
+            shippingInfo.classList.add('hidden');
+        }
+    });
+
+    // Same as customer logic
     sameAsCustomerCheckbox.addEventListener('change', () => {
         if (sameAsCustomerCheckbox.checked) {
             recipientNameInput.value = customerNameInput.value;
         }
     });
 
-    customerNameInput.addEventListener('input', () => {
-        if (sameAsCustomerCheckbox.checked) {
-            recipientNameInput.value = customerNameInput.value;
-        }
-    });
-
+    // Maps logic
     const defaultLat = -6.2000000;
     const defaultLng = 106.8166667;
+    const existingCoordinates = mapsLatitudeInput.value && mapsLongitudeInput.value ? {
+        latitude: parseFloat(mapsLatitudeInput.value),
+        longitude: parseFloat(mapsLongitudeInput.value)
+    } : null;
 
-    const parseCoordinatesFromLink = (link) => {
-        if (!link) {
-            return null;
-        }
+    const map = L.map('map').setView([existingCoordinates?.latitude ?? defaultLat, existingCoordinates?.longitude ?? defaultLng], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+    
+    let marker = existingCoordinates ? L.marker([existingCoordinates.latitude, existingCoordinates.longitude]).addTo(map) : null;
 
-        const match = link.match(/q=(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/i);
-
-        if (!match) {
-            return null;
-        }
-
-        return {
-            latitude: Number.parseFloat(match[1]),
-            longitude: Number.parseFloat(match[2]),
-        };
-    };
-
-    const existingCoordinates = mapsLatitudeInput.value && mapsLongitudeInput.value
-        ? {
-            latitude: Number.parseFloat(mapsLatitudeInput.value),
-            longitude: Number.parseFloat(mapsLongitudeInput.value),
-        }
-        : parseCoordinatesFromLink(mapsLinkInput.value);
-
-    const currentLat = existingCoordinates?.latitude ?? defaultLat;
-    const currentLng = existingCoordinates?.longitude ?? defaultLng;
-
-    const map = L.map('map', {
-        zoomControl: true,
-        scrollWheelZoom: true,
-    }).setView([currentLat, currentLng], existingCoordinates ? 16 : 12);
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-    }).addTo(map);
-
-    let marker = null;
-
-    const updateMapLink = (lat, lng) => {
-        const roundedLat = Number(lat).toFixed(7);
-        const roundedLng = Number(lng).toFixed(7);
-        const link = `https://www.google.com/maps?q=${roundedLat},${roundedLng}`;
-
-        mapsLatitudeInput.value = roundedLat;
-        mapsLongitudeInput.value = roundedLng;
-        mapsLinkInput.value = link;
-    };
-
-    const placeMarker = (lat, lng, zoom = null) => {
-        const latLng = L.latLng(lat, lng);
-
-        if (!marker) {
-            marker = L.marker(latLng, { draggable: true }).addTo(map);
-
-            marker.on('dragend', (event) => {
-                const position = event.target.getLatLng();
-                updateMapLink(position.lat, position.lng);
-                locationFeedback.textContent = 'Titik lokasi diperbarui dari marker yang digeser.';
-                locationFeedback.className = 'mt-2 text-xs text-green-600';
-            });
-        } else {
-            marker.setLatLng(latLng);
-        }
-
-        if (zoom) {
-            map.setView(latLng, zoom);
-        }
-
-        updateMapLink(lat, lng);
-    };
-
-    if (existingCoordinates) {
-        placeMarker(currentLat, currentLng);
-        locationFeedback.textContent = 'Titik lokasi sebelumnya berhasil dimuat ke peta.';
-        locationFeedback.className = 'mt-2 text-xs text-green-600';
-    }
-
-    map.on('click', (event) => {
-        placeMarker(event.latlng.lat, event.latlng.lng, 16);
-        locationFeedback.textContent = 'Titik lokasi berhasil dipilih dari peta.';
-        locationFeedback.className = 'mt-2 text-xs text-green-600';
+    map.on('click', (e) => {
+        if (marker) map.removeLayer(marker);
+        marker = L.marker(e.latlng).addTo(map);
+        mapsLatitudeInput.value = e.latlng.lat;
+        mapsLongitudeInput.value = e.latlng.lng;
+        mapsLinkInput.value = `https://www.google.com/maps?q=${e.latlng.lat},${e.latlng.lng}`;
+        locationFeedback.textContent = 'Lokasi dipilih.';
     });
 
-    setTimeout(() => {
-        map.invalidateSize();
-    }, 300);
-
     useCurrentLocationButton.addEventListener('click', () => {
-        if (!navigator.geolocation) {
-            locationFeedback.textContent = 'Browser ini tidak mendukung akses lokasi.';
-            locationFeedback.className = 'mt-2 text-xs text-red-500';
-            return;
-        }
-
-        locationFeedback.textContent = 'Mengambil lokasi terkini...';
-        locationFeedback.className = 'mt-2 text-xs text-gray-500';
-
-        navigator.geolocation.getCurrentPosition((position) => {
-            const latitude = position.coords.latitude;
-            const longitude = position.coords.longitude;
-            placeMarker(latitude, longitude, 17);
-
-            locationFeedback.textContent = 'Lokasi saat ini berhasil dipilih.';
-            locationFeedback.className = 'mt-2 text-xs text-green-600';
-        }, () => {
-            locationFeedback.textContent = 'Lokasi tidak berhasil diambil. Tentukan titik di peta.';
-            locationFeedback.className = 'mt-2 text-xs text-red-500';
-        }, {
-            enableHighAccuracy: true,
-            timeout: 10000,
-            maximumAge: 0
+        navigator.geolocation.getCurrentPosition((pos) => {
+            const { latitude, longitude } = pos.coords;
+            map.setView([latitude, longitude], 15);
+            if (marker) map.removeLayer(marker);
+            marker = L.marker([latitude, longitude]).addTo(map);
+            mapsLatitudeInput.value = latitude;
+            mapsLongitudeInput.value = longitude;
+            mapsLinkInput.value = `https://www.google.com/maps?q=${latitude},${longitude}`;
         });
     });
 
-    loadProvinces().catch(() => {
-        setSelectOptions(provinceSelect, [], 'Gagal memuat provinsi');
-        setSelectOptions(provinceSelect, [], 'Gagal memuat provinsi');
-        setSelectOptions(citySelect, [], 'Gagal memuat kabupaten / kota');
-        districtInput.placeholder = 'Gagal memuat data kecamatan';
-        subdistrictInput.placeholder = 'Gagal memuat data kelurahan';
-        locationFeedback.textContent = 'API wilayah gagal dimuat. Anda masih bisa melanjutkan dengan mengisi manual jika field tersedia.';
-    });
+    loadProvinces();
 
     const checkoutForm = document.getElementById('checkout-form');
     checkoutForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-
         const submitBtn = document.querySelector('button[form="checkout-form"]');
-        const originalText = submitBtn.innerText;
-        
-        // Disable button
         submitBtn.disabled = true;
-        submitBtn.innerText = 'Memproses Pesanan...';
+        submitBtn.innerText = 'Memproses...';
 
         const formData = new FormData(checkoutForm);
+        // Add service name
+        const selectedService = serviceSelect.options[serviceSelect.selectedIndex];
+        if (selectedService) {
+            formData.set('service', selectedService.dataset.serviceName);
+        }
 
         try {
             const response = await fetch(checkoutForm.action, {
                 method: 'POST',
                 headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'X-CSRF-TOKEN': "{{ csrf_token() }}",
                     'Accept': 'application/json'
                 },
                 body: formData
             });
 
             const data = await response.json();
-
-            if (!response.ok) {
-                if (response.status === 422) {
-                    const errors = Object.values(data.errors).flat().join('\n');
-                    throw new Error(errors);
-                }
-                throw new Error(data.message || 'Terjadi kesalahan saat memproses pesanan.');
-            }
-
             if (data.success) {
-                // 1. Buka WhatsApp
                 window.open(data.whatsapp_url, '_blank');
-
-                // 2. Redirect ke halaman detail
                 window.location.href = data.redirect_url;
+            } else {
+                throw new Error(data.message);
             }
         } catch (error) {
             submitBtn.disabled = false;
-            submitBtn.innerText = originalText;
-
-            Swal.fire({
-                title: 'Data Belum Lengkap',
-                text: error.message,
-                icon: 'warning',
-                confirmButtonColor: '#ec4899'
-            });
+            submitBtn.innerText = 'Checkout via WhatsApp';
+            alert(error.message);
         }
     });
 });
+
 </script>
 @endpush

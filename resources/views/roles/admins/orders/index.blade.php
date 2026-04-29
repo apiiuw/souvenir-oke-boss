@@ -73,9 +73,10 @@
                         <td class="px-6 py-4">
                             <div class="flex flex-col">
                                 <span class="text-xs text-gray-400">{{ $order->total_qty }} Items</span>
-                                <span class="text-sm font-bold text-pink-oke-boss">Rp {{ number_format($order->total_price, 0, ',', '.') }}</span>
+                                <span class="text-sm font-bold text-pink-oke-boss">Rp {{ number_format($order->grand_total, 0, ',', '.') }}</span>
                             </div>
                         </td>
+
                         <td class="px-6 py-4 text-center">
                             @php
                                 $statusClasses = [

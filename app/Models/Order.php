@@ -29,11 +29,17 @@ class Order extends Model
         'maps_longitude',
         'delivery_note',
         'total_qty',
+        'total_weight',
         'total_price',
+        'shipping_cost',
+        'grand_total',
+        'courier',
+        'service',
         'whatsapp_number',
         'whatsapp_message',
         'status',
     ];
+
 
     public function user()
     {

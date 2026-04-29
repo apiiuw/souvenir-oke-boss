@@ -116,11 +116,19 @@
                                 {{ $order->address_line }}<br>
                                 RT/RW {{ $order->rt }}/{{ $order->rw }}, {{ $order->subdistrict_name }}, {{ $order->district_name }}, {{ $order->city_name }}, {{ $order->province_name }}
                             </p>
+
+                        </div>
+                        <div class="rounded-2xl bg-gray-50 px-4 py-4">
+                            <p class="text-[11px] font-bold uppercase tracking-[0.24em] text-gray-400">Pengiriman</p>
+                            <p class="mt-2 text-sm font-bold text-gray-900">{{ strtoupper($order->courier) }} - {{ $order->service }}</p>
+                            <p class="mt-1 text-xs text-gray-500">Ongkos Kirim: Rp {{ number_format($order->shipping_cost, 0, ',', '.') }}</p>
                         </div>
                         <div class="rounded-2xl bg-pink-50 px-4 py-4">
-                            <p class="text-[11px] font-bold uppercase tracking-[0.24em] text-pink-500">Total Belanja</p>
-                            <p class="mt-2 text-xl font-black text-pink-600">Rp {{ number_format($order->total_price, 0, ',', '.') }}</p>
+                            <p class="text-[11px] font-bold uppercase tracking-[0.24em] text-pink-500">Total Pembayaran</p>
+                            <p class="mt-2 text-xl font-black text-pink-600">Rp {{ number_format($order->grand_total, 0, ',', '.') }}</p>
+                            <p class="mt-1 text-xs text-pink-400">Subtotal: Rp {{ number_format($order->total_price, 0, ',', '.') }}</p>
                         </div>
+
                     </div>
                 </div>
 

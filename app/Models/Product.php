@@ -11,7 +11,9 @@ class Product extends Model
         'name',
         'slug',
         'price',
+        'weight',
         'stock',
+
         'min_order',
         'description',
     ];

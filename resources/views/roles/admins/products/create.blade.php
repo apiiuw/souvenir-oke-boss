@@ -38,10 +38,14 @@
                     <input type="text" name="name" value="{{ old('name') }}" required class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-pink-500 focus:bg-white transition-all text-sm font-semibold" placeholder="Masukkan nama produk souvenir">
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="space-y-2">
                         <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest">Harga (Rp)</label>
                         <input type="number" name="price" value="{{ old('price') }}" required class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-pink-500 focus:bg-white transition-all text-sm font-bold" placeholder="Contoh: 15000">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest">Berat (Gram)</label>
+                        <input type="number" name="weight" value="{{ old('weight', 100) }}" required class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-pink-500 focus:bg-white transition-all text-sm font-bold" placeholder="Contoh: 500">
                     </div>
                     <div class="space-y-2">
                         <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest">Stok Total</label>
@@ -52,6 +56,7 @@
                         <input type="number" name="min_order" value="{{ old('min_order') }}" required class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-pink-500 focus:bg-white transition-all text-sm font-bold" placeholder="Contoh: 100">
                     </div>
                 </div>
+
 
                 <div class="space-y-2">
                     <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest">Deskripsi Produk</label>

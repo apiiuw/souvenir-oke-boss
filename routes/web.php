@@ -35,7 +35,15 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
     Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
 
+    Route::get('/shipping/provinces', [CheckoutController::class, 'getProvinces'])->name('shipping.provinces');
+    Route::get('/shipping/cities/{provinceId}', [CheckoutController::class, 'getCities'])->name('shipping.cities');
+    Route::get('/shipping/districts/{cityId}', [CheckoutController::class, 'getDistricts'])->name('shipping.districts');
+    Route::get('/shipping/sub-districts/{districtId}', [CheckoutController::class, 'getSubDistricts'])->name('shipping.subdistricts');
+    Route::post('/shipping/cost', [CheckoutController::class, 'getCost'])->name('shipping.cost');
+
+
     Route::get('/pesanan-saya', [OrderTrackingController::class, 'index'])->name('user.orders.index');
+
     Route::get('/pesanan-saya/{order}', [OrderTrackingController::class, 'show'])->name('user.orders.show');
     Route::get('/profil', [ProfileController::class, 'edit'])->name('user.profile.edit');
     Route::patch('/profil', [ProfileController::class, 'update'])->name('user.profile.update');

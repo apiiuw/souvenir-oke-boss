@@ -50,8 +50,10 @@ class ProductController extends Controller
             'category_id' => 'required|exists:categories,id',
             'name' => 'required|string|max:255',
             'price' => 'required|numeric',
+            'weight' => 'required|numeric|min:1',
             'stock' => 'required|integer|min:0',
             'min_order' => 'required|integer',
+
             'description' => 'required',
             'images.*' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'variants.*.name' => 'nullable|string',
@@ -65,9 +67,11 @@ class ProductController extends Controller
             'name' => $request->name,
             'slug' => Str::slug($request->name) . '-' . time(),
             'price' => $request->price,
+            'weight' => $request->weight,
             'stock' => $request->stock,
             'min_order' => $request->min_order,
             'description' => $request->description,
+
         ]);
 
         if ($request->hasFile('images')) {
@@ -134,8 +138,10 @@ class ProductController extends Controller
             'category_id' => 'required|exists:categories,id',
             'name' => 'required|string|max:255',
             'price' => 'required|numeric',
+            'weight' => 'required|numeric|min:1',
             'stock' => 'required|integer|min:0',
             'min_order' => 'required|integer',
+
             'description' => 'required',
             'images.*' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'variants.*.id' => 'nullable',
@@ -151,9 +157,11 @@ class ProductController extends Controller
             'name' => $request->name,
             'slug' => Str::slug($request->name) . '-' . $product->id,
             'price' => $request->price,
+            'weight' => $request->weight,
             'stock' => $request->stock,
             'min_order' => $request->min_order,
             'description' => $request->description,
+
         ]);
 
         if ($request->hasFile('images')) {
